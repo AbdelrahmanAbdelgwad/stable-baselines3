@@ -105,11 +105,18 @@ class QNetwork(BasePolicy):
     def _predict(self, observation: th.Tensor, deterministic: bool = True, copilot: bool = False) -> th.Tensor:
         q_values = self(observation)
         if not copilot:
+            print("Inside normal code")
             # Greedy action
             action = q_values.argmax(dim=1).reshape(-1)
         else:
-            q_values -= tf.reduce_min(q_values)
-            opt_action = q_values.argmax(dim=1).reshape(-1)
+            print("Inside copilot code")
+            print("Q_values", q_values, "\n")
+            q_values = q_values.cpu().data.numpy()
+            # q_values -= tf.reduce_min(q_values)
+            q_values -= np.min(q_values)
+            # opt_action = q_values.argmax(dim=1).reshape(-1)
+            opt_action = np.argmax(q_values).item()
+            print("Q_values normalized", q_values, "\n")
             opt_q_values = q_values[opt_action]
 
             pi_action_steering = get_last_element(observation)
