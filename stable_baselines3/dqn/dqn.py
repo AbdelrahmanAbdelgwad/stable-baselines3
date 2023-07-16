@@ -100,6 +100,7 @@ class DQN(OffPolicyAlgorithm):
         seed: Optional[int] = None,
         device: Union[th.device, str] = "auto",
         _init_setup_model: bool = True,
+        copilot=False,
     ) -> None:
         super().__init__(
             policy,
@@ -136,6 +137,7 @@ class DQN(OffPolicyAlgorithm):
         self.max_grad_norm = max_grad_norm
         # "epsilon" for the epsilon-greedy exploration
         self.exploration_rate = 0.0
+        self.copilot = copilot
 
         if _init_setup_model:
             self._setup_model()
@@ -252,7 +254,7 @@ class DQN(OffPolicyAlgorithm):
             else:
                 action = np.array(self.action_space.sample())
         else:
-            action, state = self.policy.predict(observation, state, episode_start, deterministic)
+            action, state = self.policy.predict(observation, state, episode_start, deterministic, copilot=self.copilot)
         return action, state
 
     def learn(

@@ -1,5 +1,5 @@
-from typing import Any, Dict, List, Optional, Type
-
+from typing import Any, Dict, List, Optional, Type, Type, Union, Tuple
+import numpy as np
 import torch as th
 from gymnasium import spaces
 from torch import nn
@@ -13,6 +13,43 @@ from stable_baselines3.common.torch_layers import (
     create_mlp,
 )
 from stable_baselines3.common.type_aliases import Schedule
+import tensorflow as tf
+
+ALPHA = 0.6
+
+
+def get_last_element(tensor):
+    # Flatten the tensor to 1D
+    flattened = tensor.view(-1)
+    # Get the last element
+    last_element = flattened[-1]
+    return last_element
+
+
+def steering2action(action):
+    if action == 0:
+        action = 0  # "NOTHING"
+    if action == -0.2:
+        action = 1  # LEFT_LEVEL_1
+    if action == -0.4:
+        action = 2  # LEFT_LEVEL_2
+    if action == -0.6:
+        action = 3  # LEFT_LEVEL_3
+    if action == -0.8:
+        action = 4  # LEFT_LEVEL_4
+    if action == -1:
+        action = 5  # LEFT_LEVEL_5
+    if action == 0.2:
+        action = 6  # RIGHT_LEVEL_1
+    if action == 0.4:
+        action = 7  # RIGHT_LEVEL_2
+    if action == 0.6:
+        action = 8  # RIGHT_LEVEL_3
+    if action == 0.8:
+        action = 9  # RIGHT_LEVEL_4
+    if action == 1:
+        action = 10  # RIGHT_LEVEL_5
+    return action
 
 
 class QNetwork(BasePolicy):
@@ -65,10 +102,25 @@ class QNetwork(BasePolicy):
         """
         return self.q_net(self.extract_features(obs, self.features_extractor))
 
-    def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
+    def _predict(self, observation: th.Tensor, deterministic: bool = True, copilot: bool = False) -> th.Tensor:
         q_values = self(observation)
-        # Greedy action
-        action = q_values.argmax(dim=1).reshape(-1)
+        if not copilot:
+            # Greedy action
+            action = q_values.argmax(dim=1).reshape(-1)
+        else:
+            q_values -= tf.reduce_min(q_values)
+            opt_action = q_values.argmax(dim=1).reshape(-1)
+            opt_q_values = q_values[opt_action]
+
+            pi_action_steering = get_last_element(observation)
+            pi_action = steering2action(pi_action_steering)
+            # pi_act_q_values = q_values[0][pi_action]
+            pi_act_q_values = q_values[pi_action]
+
+            if pi_act_q_values >= (1 - ALPHA) * opt_q_values:
+                action = pi_action
+            else:
+                action = opt_action
         return action
 
     def _get_constructor_parameters(self) -> Dict[str, Any]:
@@ -180,8 +232,8 @@ class DQNPolicy(BasePolicy):
     def forward(self, obs: th.Tensor, deterministic: bool = True) -> th.Tensor:
         return self._predict(obs, deterministic=deterministic)
 
-    def _predict(self, obs: th.Tensor, deterministic: bool = True) -> th.Tensor:
-        return self.q_net._predict(obs, deterministic=deterministic)
+    def _predict(self, obs: th.Tensor, deterministic: bool = True, copilot: bool = False) -> th.Tensor:
+        return self.q_net._predict(obs, deterministic=deterministic, copilot=copilot)
 
     def _get_constructor_parameters(self) -> Dict[str, Any]:
         data = super()._get_constructor_parameters()
@@ -209,6 +261,52 @@ class DQNPolicy(BasePolicy):
         """
         self.q_net.set_training_mode(mode)
         self.training = mode
+
+    def predict(
+        self,
+        observation: Union[np.ndarray, Dict[str, np.ndarray]],
+        state: Optional[Tuple[np.ndarray, ...]] = None,
+        episode_start: Optional[np.ndarray] = None,
+        deterministic: bool = False,
+        copilot: bool = False,
+    ) -> Tuple[np.ndarray, Optional[Tuple[np.ndarray, ...]]]:
+        """
+        Get the policy action from an observation (and optional hidden state).
+        Includes sugar-coating to handle different observations (e.g. normalizing images).
+
+        :param observation: the input observation
+        :param state: The last hidden states (can be None, used in recurrent policies)
+        :param episode_start: The last masks (can be None, used in recurrent policies)
+            this correspond to beginning of episodes,
+            where the hidden states of the RNN must be reset.
+        :param deterministic: Whether or not to return deterministic actions.
+        :return: the model's action and the next hidden state
+            (used in recurrent policies)
+        """
+        # Switch to eval mode (this affects batch norm / dropout)
+        self.set_training_mode(False)
+
+        observation, vectorized_env = self.obs_to_tensor(observation)
+
+        with th.no_grad():
+            actions = self._predict(observation, deterministic=deterministic, copilot=copilot)
+        # Convert to numpy, and reshape to the original action shape
+        actions = actions.cpu().numpy().reshape((-1, *self.action_space.shape))
+
+        if isinstance(self.action_space, spaces.Box):
+            if self.squash_output:
+                # Rescale to proper domain when using squashing
+                actions = self.unscale_action(actions)
+            else:
+                # Actions could be on arbitrary scale, so clip the actions to avoid
+                # out of bound error (e.g. if sampling from a Gaussian distribution)
+                actions = np.clip(actions, self.action_space.low, self.action_space.high)
+
+        # Remove batch dimension if needed
+        if not vectorized_env:
+            actions = actions.squeeze(axis=0)
+
+        return actions, state
 
 
 MlpPolicy = DQNPolicy

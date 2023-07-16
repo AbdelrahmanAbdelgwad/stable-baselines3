@@ -5,7 +5,7 @@ from typing import Union
 import gymnasium
 
 try:
-    import gym  # pytype: disable=import-error
+    import haptic.gym as gym  # pytype: disable=import-error
 
     gym_installed = True
 except ImportError:
