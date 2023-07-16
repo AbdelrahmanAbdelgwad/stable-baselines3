@@ -122,7 +122,7 @@ class QNetwork(BasePolicy):
             pi_action_steering = get_last_element(observation)
             pi_action = steering2action(pi_action_steering)
             # pi_act_q_values = q_values[0][pi_action]
-            pi_act_q_values = q_values[pi_action]
+            pi_act_q_values = q_values[0][pi_action]
 
             if pi_act_q_values >= (1 - ALPHA) * opt_q_values:
                 action = pi_action
