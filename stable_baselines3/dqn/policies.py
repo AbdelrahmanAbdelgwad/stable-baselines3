@@ -117,7 +117,7 @@ class QNetwork(BasePolicy):
             # opt_action = q_values.argmax(dim=1).reshape(-1)
             opt_action = np.argmax(q_values).item()
             print("Q_values normalized", q_values, "\n")
-            opt_q_values = q_values[opt_action]
+            opt_q_values = q_values[0][opt_action]
 
             pi_action_steering = get_last_element(observation)
             pi_action = steering2action(pi_action_steering)
