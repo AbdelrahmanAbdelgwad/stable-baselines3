@@ -20,7 +20,7 @@ ALPHA = 0.6
 
 def get_last_element(tensor):
     # Flatten the tensor to 1D
-    flattened = tensor.view(-1)
+    flattened = th.reshape(tensor, -1)
     # Get the last element
     last_element = flattened[-1]
     return last_element
