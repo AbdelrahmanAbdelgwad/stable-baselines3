@@ -275,7 +275,7 @@ class DQNPolicy(BasePolicy):
         state: Optional[Tuple[np.ndarray, ...]] = None,
         episode_start: Optional[np.ndarray] = None,
         deterministic: bool = False,
-        copilot: bool = False,
+        copilot: bool = True,
     ) -> Tuple[np.ndarray, Optional[Tuple[np.ndarray, ...]]]:
         """
         Get the policy action from an observation (and optional hidden state).
@@ -298,7 +298,8 @@ class DQNPolicy(BasePolicy):
         with th.no_grad():
             actions = self._predict(observation, deterministic=deterministic, copilot=copilot)
         # Convert to numpy, and reshape to the original action shape
-        actions = actions.cpu().numpy().reshape((-1, *self.action_space.shape))
+        # actions = actions.cpu().numpy().reshape((-1, *self.action_space.shape))
+        actions = actions.numpy().reshape((-1, *self.action_space.shape))
 
         if isinstance(self.action_space, spaces.Box):
             if self.squash_output:
