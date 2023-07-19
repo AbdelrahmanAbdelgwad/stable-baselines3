@@ -75,6 +75,7 @@ class QNetwork(BasePolicy):
         net_arch: Optional[List[int]] = None,
         activation_fn: Type[nn.Module] = nn.ReLU,
         normalize_images: bool = True,
+        copilot: bool = False,
     ) -> None:
         super().__init__(
             observation_space,
@@ -93,6 +94,8 @@ class QNetwork(BasePolicy):
         q_net = create_mlp(self.features_dim, action_dim, self.net_arch, self.activation_fn)
         self.q_net = nn.Sequential(*q_net)
 
+        self.copilot = copilot
+
     def forward(self, obs: th.Tensor) -> th.Tensor:
         """
         Predict the q-values.
@@ -102,9 +105,9 @@ class QNetwork(BasePolicy):
         """
         return self.q_net(self.extract_features(obs, self.features_extractor))
 
-    def _predict(self, observation: th.Tensor, deterministic: bool = True, copilot: bool = False) -> th.Tensor:
+    def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
         q_values = self(observation)
-        if not copilot:
+        if not self.copilot:
             print("Inside normal code")
             # Greedy action
             action = q_values.argmax(dim=1).reshape(-1)
@@ -179,6 +182,7 @@ class DQNPolicy(BasePolicy):
         normalize_images: bool = True,
         optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
         optimizer_kwargs: Optional[Dict[str, Any]] = None,
+        copilot: bool = False,
     ) -> None:
         super().__init__(
             observation_space,
@@ -209,6 +213,8 @@ class DQNPolicy(BasePolicy):
 
         self._build(lr_schedule)
 
+        self.copilot = copilot
+
     def _build(self, lr_schedule: Schedule) -> None:
         """
         Create the network and the optimizer.
@@ -234,13 +240,13 @@ class DQNPolicy(BasePolicy):
     def make_q_net(self) -> QNetwork:
         # Make sure we always have separate networks for features extractors etc
         net_args = self._update_features_extractor(self.net_args, features_extractor=None)
-        return QNetwork(**net_args).to(self.device)
+        return QNetwork(copilot=self.copilot, **net_args).to(self.device)
 
     def forward(self, obs: th.Tensor, deterministic: bool = True) -> th.Tensor:
         return self._predict(obs, deterministic=deterministic)
 
-    def _predict(self, obs: th.Tensor, deterministic: bool = True, copilot: bool = False) -> th.Tensor:
-        return self.q_net._predict(obs, deterministic=deterministic, copilot=copilot)
+    def _predict(self, obs: th.Tensor, deterministic: bool = True) -> th.Tensor:
+        return self.q_net._predict(obs, deterministic=deterministic)
 
     def _get_constructor_parameters(self) -> Dict[str, Any]:
         data = super()._get_constructor_parameters()
@@ -275,7 +281,6 @@ class DQNPolicy(BasePolicy):
         state: Optional[Tuple[np.ndarray, ...]] = None,
         episode_start: Optional[np.ndarray] = None,
         deterministic: bool = False,
-        copilot: bool = False,
     ) -> Tuple[np.ndarray, Optional[Tuple[np.ndarray, ...]]]:
         """
         Get the policy action from an observation (and optional hidden state).
@@ -296,7 +301,7 @@ class DQNPolicy(BasePolicy):
         observation, vectorized_env = self.obs_to_tensor(observation)
 
         with th.no_grad():
-            actions = self._predict(observation, deterministic=deterministic, copilot=copilot)
+            actions = self._predict(observation, deterministic=deterministic)
         # Convert to numpy, and reshape to the original action shape
         # actions = actions.cpu().numpy().reshape((-1, *self.action_space.shape))
         actions = np.array([actions]).reshape((-1, *self.action_space.shape))
