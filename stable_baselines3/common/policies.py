@@ -182,6 +182,8 @@ class BaseModel(nn.Module):
         model.load_state_dict(saved_variables["state_dict"])
         model.to(device)
         model.copilot = copilot
+        for i in range(1000):
+            print(f"\n model type is {type(model)} \n")
         return model
 
     def load_from_vector(self, vector: np.ndarray) -> None:
