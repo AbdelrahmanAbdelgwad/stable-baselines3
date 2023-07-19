@@ -92,6 +92,7 @@ class BaseModel(nn.Module):
         # Automatically deactivate dtype and bounds checks
         if normalize_images is False and issubclass(features_extractor_class, (NatureCNN, CombinedExtractor)):
             self.features_extractor_kwargs.update(dict(normalized_image=True))
+        self.copilot = False
 
     def _update_features_extractor(
         self,
@@ -164,7 +165,7 @@ class BaseModel(nn.Module):
         th.save({"state_dict": self.state_dict(), "data": self._get_constructor_parameters()}, path)
 
     @classmethod
-    def load(cls: Type[SelfBaseModel], path: str, device: Union[th.device, str] = "auto") -> SelfBaseModel:
+    def load(cls: Type[SelfBaseModel], path: str, device: Union[th.device, str] = "auto", copilot=True) -> SelfBaseModel:
         """
         Load model from path.
 
@@ -180,6 +181,7 @@ class BaseModel(nn.Module):
         # Load weights
         model.load_state_dict(saved_variables["state_dict"])
         model.to(device)
+        self.copilot = copilot
         return model
 
     def load_from_vector(self, vector: np.ndarray) -> None:
