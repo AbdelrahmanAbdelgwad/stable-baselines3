@@ -141,7 +141,9 @@ class DQN(OffPolicyAlgorithm):
 
         if _init_setup_model:
             self._setup_model()
-        self.policy.copilot = copilot
+            # TODO: Fix this error:
+            # AttributeError: 'DQN' object has no attribute 'policy'
+        # self.policy.copilot = copilot
 
     def _setup_model(self) -> None:
         super()._setup_model()
@@ -245,6 +247,7 @@ class DQN(OffPolicyAlgorithm):
         :return: the model's action and the next state
             (used in recurrent policies)
         """
+        self.policy.copilot = copilot
         if not deterministic and np.random.rand() < self.exploration_rate:
             if self.policy.is_vectorized_observation(observation):
                 if isinstance(observation, dict):
