@@ -141,8 +141,7 @@ class DQN(OffPolicyAlgorithm):
 
         if _init_setup_model:
             self._setup_model()
-
-        self.policy.copilot = copilot
+            self.policy.copilot = copilot
 
     def _setup_model(self) -> None:
         super()._setup_model()
