@@ -165,7 +165,7 @@ class BaseModel(nn.Module):
         th.save({"state_dict": self.state_dict(), "data": self._get_constructor_parameters()}, path)
 
     @classmethod
-    def load(cls: Type[SelfBaseModel], path: str, device: Union[th.device, str] = "auto", copilot=True) -> SelfBaseModel:
+    def load(cls: Type[SelfBaseModel], path: str, device: Union[th.device, str] = "auto") -> SelfBaseModel:
         """
         Load model from path.
 
@@ -182,8 +182,8 @@ class BaseModel(nn.Module):
         model.load_state_dict(saved_variables["state_dict"])
         model.to(device)
         # model.copilot = copilot
-        for i in range(1000):
-            print(f"\n model type is {type(model)} \n")
+        # for i in range(1000):
+        #     print(f"\n model type is {type(model)} \n")
         return model
 
     def load_from_vector(self, vector: np.ndarray) -> None:
