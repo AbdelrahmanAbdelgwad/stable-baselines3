@@ -777,6 +777,9 @@ class BaseAlgorithm(ABC):
         # see issue #44
         if model.use_sde:
             model.policy.reset_noise()  # type: ignore[operator]  # pytype: disable=attribute-error
+        # model.copilot = copilot
+        for i in range(1000):
+            print(f"\n model type is {type(model)} \n")
         return model
 
     def get_parameters(self) -> Dict[str, Dict]:
