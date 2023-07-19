@@ -181,7 +181,7 @@ class BaseModel(nn.Module):
         # Load weights
         model.load_state_dict(saved_variables["state_dict"])
         model.to(device)
-        self.copilot = copilot
+        model.copilot = copilot
         return model
 
     def load_from_vector(self, vector: np.ndarray) -> None:
