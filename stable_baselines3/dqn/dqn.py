@@ -138,10 +138,11 @@ class DQN(OffPolicyAlgorithm):
         # "epsilon" for the epsilon-greedy exploration
         self.exploration_rate = 0.0
         self.copilot = copilot
-        self.policy.copilot = copilot
 
         if _init_setup_model:
             self._setup_model()
+
+        self.policy.copilot = copilot
 
     def _setup_model(self) -> None:
         super()._setup_model()
