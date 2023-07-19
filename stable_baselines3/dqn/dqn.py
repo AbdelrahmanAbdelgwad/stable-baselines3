@@ -100,7 +100,7 @@ class DQN(OffPolicyAlgorithm):
         seed: Optional[int] = None,
         device: Union[th.device, str] = "auto",
         _init_setup_model: bool = True,
-        copilot=True,
+        copilot=False,
     ) -> None:
         super().__init__(
             policy,
