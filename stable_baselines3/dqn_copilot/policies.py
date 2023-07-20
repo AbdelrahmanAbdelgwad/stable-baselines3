@@ -316,10 +316,10 @@ class DQNPolicyCopilot(BasePolicy):
         return actions, state
 
 
-MlpPolicy = DQNPolicyCopilot
+MlpPolicyCopilot = DQNPolicyCopilot
 
 
-class CnnPolicy(DQNPolicyCopilot):
+class CnnPolicyCopilot(DQNPolicyCopilot):
     """
     Policy class for DQN when using images as input.
 
@@ -364,7 +364,7 @@ class CnnPolicy(DQNPolicyCopilot):
         )
 
 
-class MultiInputPolicy(DQNPolicyCopilot):
+class MultiInputPolicyCopilot(DQNPolicyCopilot):
     """
     Policy class for DQN when using dict observations as input.
 

@@ -11,9 +11,15 @@ from stable_baselines3.common.off_policy_algorithm import OffPolicyAlgorithm
 from stable_baselines3.common.policies import BasePolicy
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import get_linear_fn, get_parameters_by_name, polyak_update
-from stable_baselines3.dqn_copilot.policies import CnnPolicy, DQNPolicyCopilot, MlpPolicy, MultiInputPolicy, QNetworkCopilot
+from stable_baselines3.dqn_copilot.policies import (
+    CnnPolicyCopilot,
+    DQNPolicyCopilot,
+    MlpPolicyCopilot,
+    MultiInputPolicyCopilot,
+    QNetworkCopilot,
+)
 
-SelfDQN = TypeVar("SelfDQN", bound="DQNCopilot")
+SelfDQNCopilot = TypeVar("SelfDQNCopilot", bound="DQNCopilot")
 
 
 class DQNCopilot(OffPolicyAlgorithm):
@@ -63,9 +69,9 @@ class DQNCopilot(OffPolicyAlgorithm):
     """
 
     policy_aliases: ClassVar[Dict[str, Type[BasePolicy]]] = {
-        "MlpPolicy": MlpPolicy,
-        "CnnPolicy": CnnPolicy,
-        "MultiInputPolicy": MultiInputPolicy,
+        "MlpPolicyCopilot": MlpPolicyCopilot,
+        "CnnPolicyCopilot": CnnPolicyCopilot,
+        "MultiInputPolicyCopilot": MultiInputPolicyCopilot,
     }
     # Linear schedule will be defined in `_setup_model()`
     exploration_schedule: Schedule
@@ -257,14 +263,14 @@ class DQNCopilot(OffPolicyAlgorithm):
         return action, state
 
     def learn(
-        self: SelfDQN,
+        self: SelfDQNCopilot,
         total_timesteps: int,
         callback: MaybeCallback = None,
         log_interval: int = 4,
-        tb_log_name: str = "DQN",
+        tb_log_name: str = "DQNCopilot",
         reset_num_timesteps: bool = True,
         progress_bar: bool = False,
-    ) -> SelfDQN:
+    ) -> SelfDQNCopilot:
         return super().learn(
             total_timesteps=total_timesteps,
             callback=callback,
