@@ -11,12 +11,12 @@ from stable_baselines3.common.off_policy_algorithm import OffPolicyAlgorithm
 from stable_baselines3.common.policies import BasePolicy
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import get_linear_fn, get_parameters_by_name, polyak_update
-from stable_baselines3.dqn_copilot.policies import CnnPolicy, DQNPolicy, MlpPolicy, MultiInputPolicy, QNetwork
+from stable_baselines3.dqn_copilot.policies import CnnPolicy, DQNPolicyCopilot, MlpPolicy, MultiInputPolicy, QNetworkCopilot
 
-SelfDQN = TypeVar("SelfDQN", bound="DQN")
+SelfDQN = TypeVar("SelfDQN", bound="DQNCopilot")
 
 
-class DQN(OffPolicyAlgorithm):
+class DQNCopilot(OffPolicyAlgorithm):
     """
     Deep Q-Network (DQN)
 
@@ -69,13 +69,13 @@ class DQN(OffPolicyAlgorithm):
     }
     # Linear schedule will be defined in `_setup_model()`
     exploration_schedule: Schedule
-    q_net: QNetwork
-    q_net_target: QNetwork
-    policy: DQNPolicy
+    q_net: QNetworkCopilot
+    q_net_target: QNetworkCopilot
+    policy: DQNPolicyCopilot
 
     def __init__(
         self,
-        policy: Union[str, Type[DQNPolicy]],
+        policy: Union[str, Type[DQNPolicyCopilot]],
         env: Union[GymEnv, str],
         learning_rate: Union[float, Schedule] = 1e-4,
         buffer_size: int = 1_000_000,  # 1e6

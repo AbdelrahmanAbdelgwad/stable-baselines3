@@ -52,7 +52,7 @@ def steering2action(action):
     return action
 
 
-class QNetwork(BasePolicy):
+class QNetworkCopilot(BasePolicy):
     """
     Action-Value (Q-Value) network for DQN
 
@@ -144,7 +144,7 @@ class QNetwork(BasePolicy):
         return data
 
 
-class DQNPolicy(BasePolicy):
+class DQNPolicyCopilot(BasePolicy):
     """
     Policy class with Q-Value Net and target net for DQN
 
@@ -164,8 +164,8 @@ class DQNPolicy(BasePolicy):
         excluding the learning rate, to pass to the optimizer
     """
 
-    q_net: QNetwork
-    q_net_target: QNetwork
+    q_net: QNetworkCopilot
+    q_net_target: QNetworkCopilot
 
     def __init__(
         self,
@@ -231,10 +231,10 @@ class DQNPolicy(BasePolicy):
             **self.optimizer_kwargs,
         )
 
-    def make_q_net(self) -> QNetwork:
+    def make_q_net(self) -> QNetworkCopilot:
         # Make sure we always have separate networks for features extractors etc
         net_args = self._update_features_extractor(self.net_args, features_extractor=None)
-        return QNetwork(**net_args).to(self.device)
+        return QNetworkCopilot(**net_args).to(self.device)
 
     def forward(self, obs: th.Tensor, deterministic: bool = True) -> th.Tensor:
         return self._predict(obs, deterministic=deterministic)
@@ -316,10 +316,10 @@ class DQNPolicy(BasePolicy):
         return actions, state
 
 
-MlpPolicy = DQNPolicy
+MlpPolicy = DQNPolicyCopilot
 
 
-class CnnPolicy(DQNPolicy):
+class CnnPolicy(DQNPolicyCopilot):
     """
     Policy class for DQN when using images as input.
 
@@ -364,7 +364,7 @@ class CnnPolicy(DQNPolicy):
         )
 
 
-class MultiInputPolicy(DQNPolicy):
+class MultiInputPolicy(DQNPolicyCopilot):
     """
     Policy class for DQN when using dict observations as input.
 
