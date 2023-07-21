@@ -1,4 +1,4 @@
-from stable_baselines3.dqn.dqn import DQN
-from stable_baselines3.dqn.policies import CnnPolicy, MlpPolicy, MultiInputPolicy
+from stable_baselines3.dqn_copilot.dqn import DQNCopilot
+from stable_baselines3.dqn_copilot.policies import CnnPolicyCopilot, MlpPolicyCopilot, MultiInputPolicyCopilot
 
-__all__ = ["CnnPolicy", "MlpPolicy", "MultiInputPolicy", "DQN"]
+__all__ = ["CnnPolicyCopilot", "MlpPolicyCopilot", "MultiInputPolicyCopilot", "DQNCopilot"]
