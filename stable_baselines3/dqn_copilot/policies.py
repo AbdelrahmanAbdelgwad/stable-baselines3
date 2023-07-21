@@ -109,7 +109,7 @@ class QNetworkCopilot(BasePolicy):
         #     # Greedy action
         #     action = q_values.argmax(dim=1).reshape(-1)
         # else:
-        print("Inside copilot code")
+        # print("Inside copilot code")
         # print("Q_values", q_values, "\n")
         q_values = q_values.cpu().data.numpy()
         # q_values -= tf.reduce_min(q_values)

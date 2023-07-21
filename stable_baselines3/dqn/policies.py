@@ -104,7 +104,7 @@ class QNetwork(BasePolicy):
 
     def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
         q_values = self(observation)
-        print("Inside normal code")
+        # print("Inside normal code")
         # Greedy action
         action = q_values.argmax(dim=1).reshape(-1)
         return action
