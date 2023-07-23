@@ -15,14 +15,14 @@ from stable_baselines3.common.torch_layers import (
 from stable_baselines3.common.type_aliases import Schedule
 import tensorflow as tf
 
-ALPHA = 0.6
+ALPHA = 1
 
 
 def get_last_element(tensor):
     # Flatten the tensor to 1D
     flattened = th.reshape(tensor, (-1,))
     # Get the last element
-    last_element = flattened[-1]
+    last_element = flattened[-1].item()
     return last_element
 
 
@@ -120,7 +120,9 @@ class QNetworkCopilot(BasePolicy):
         opt_q_values = q_values[0][opt_action]
 
         pi_action_steering = get_last_element(observation)
+        # print("SB3", pi_action_steering)
         pi_action = steering2action(pi_action_steering)
+        print("SB3",pi_action)
         # pi_act_q_values = q_values[0][pi_action]
         pi_act_q_values = q_values[0][pi_action]
 
@@ -128,6 +130,8 @@ class QNetworkCopilot(BasePolicy):
             action = pi_action
         else:
             action = opt_action
+        
+        # print(pi_action == action)
         return action
 
     def _get_constructor_parameters(self) -> Dict[str, Any]:
