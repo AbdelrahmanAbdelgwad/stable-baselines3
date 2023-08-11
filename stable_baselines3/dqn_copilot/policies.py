@@ -13,9 +13,9 @@ from stable_baselines3.common.torch_layers import (
     create_mlp,
 )
 from stable_baselines3.common.type_aliases import Schedule
-import tensorflow as tf
 
-ALPHA = 1
+ALPHA = 0.6
+DICT = False
 
 
 def get_last_element(tensor):
@@ -27,28 +27,31 @@ def get_last_element(tensor):
 
 
 def steering2action(action):
-    if action == 0:
+    tolerance = 0.01  # Adjust this tolerance as needed
+
+    if abs(action - 0) <= tolerance:
         action = 0  # "NOTHING"
-    if action == -0.2:
+    elif abs(action - (-0.2)) <= tolerance:
         action = 1  # LEFT_LEVEL_1
-    if action == -0.4:
+    elif abs(action - (-0.4)) <= tolerance:
         action = 2  # LEFT_LEVEL_2
-    if action == -0.6:
+    elif abs(action - (-0.6)) <= tolerance:
         action = 3  # LEFT_LEVEL_3
-    if action == -0.8:
+    elif abs(action - (-0.8)) <= tolerance:
         action = 4  # LEFT_LEVEL_4
-    if action == -1:
+    elif abs(action - (-1)) <= tolerance:
         action = 5  # LEFT_LEVEL_5
-    if action == 0.2:
+    elif abs(action - 0.2) <= tolerance:
         action = 6  # RIGHT_LEVEL_1
-    if action == 0.4:
+    elif abs(action - 0.4) <= tolerance:
         action = 7  # RIGHT_LEVEL_2
-    if action == 0.6:
+    elif abs(action - 0.6) <= tolerance:
         action = 8  # RIGHT_LEVEL_3
-    if action == 0.8:
+    elif abs(action - 0.8) <= tolerance:
         action = 9  # RIGHT_LEVEL_4
-    if action == 1:
+    elif abs(action - 1) <= tolerance:
         action = 10  # RIGHT_LEVEL_5
+
     return action
 
 
@@ -119,10 +122,14 @@ class QNetworkCopilot(BasePolicy):
         # print("Q_values normalized", q_values, "\n")
         opt_q_values = q_values[0][opt_action]
 
-        pi_action_steering = get_last_element(observation)
-        # print("SB3", pi_action_steering)
+        if DICT:
+            pi_action_steering = observation["human_action"][0].item()
+        else:
+            pi_action_steering = get_last_element(observation)
+
         pi_action = steering2action(pi_action_steering)
-        print("SB3",pi_action)
+        print("SB3_steer", pi_action_steering)
+        print("SB3", pi_action)
         # pi_act_q_values = q_values[0][pi_action]
         pi_act_q_values = q_values[0][pi_action]
 
@@ -130,7 +137,7 @@ class QNetworkCopilot(BasePolicy):
             action = pi_action
         else:
             action = opt_action
-        
+
         # print(pi_action == action)
         return action
 
