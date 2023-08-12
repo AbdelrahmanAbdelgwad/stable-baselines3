@@ -109,34 +109,6 @@ class QNetworkCopilot(BasePolicy):
         return self.q_net(self.extract_features(obs, self.features_extractor))
 
     def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
-        # Saving 5 Channels of Observation
-        ##################################################################################
-        # print(observation.shape)
-        # # Convert the tensor to a numpy array
-        # observation_np = observation.squeeze(0).permute(1, 2, 0).cpu().numpy()
-
-        # # Create a figure with subplots for each channel
-        # num_channels = observation_np.shape[2]
-        # fig, axes = plt.subplots(1, num_channels, figsize=(15, 3))  # Adjust figsize as needed
-
-        # # Plot each channel in a subplot
-        # for i in range(num_channels):
-        #     axes[i].imshow(observation_np[:, :, i], cmap="gray")  # Assuming grayscale channels
-        #     axes[i].set_title(f"Channel {i}")
-        #     axes[i].axis("off")
-
-        # # Save the figure as an image using OpenCV
-        # image_path = "observation_image.png"
-        # plt.savefig(image_path, bbox_inches="tight", pad_inches=0)
-        # plt.close()
-
-        # # Load the saved image using OpenCV and display it
-        # saved_image = cv2.imread(image_path)
-        # cv2.imshow("Saved Observation Image", saved_image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        ###################################################################################
-
         q_values = self(observation)
         q_values = q_values.cpu().data.numpy()
         # q_values -= tf.reduce_min(q_values)
@@ -148,10 +120,42 @@ class QNetworkCopilot(BasePolicy):
             pi_action_steering = observation["human_action"][0].item()
         else:
             pi_action_steering = get_last_element(observation)
+        if -1 <= pi_action_steering <= 1:
+            print("pass")
+        else:
+            print("SB3_steer", pi_action_steering)
+            print("SB3", pi_action)
+
+            # Saving 5 Channels of Observation
+            #################################################################################
+            print(observation.shape)
+            # Convert the tensor to a numpy array
+            observation_np = observation.squeeze(0).permute(1, 2, 0).cpu().numpy()
+
+            # Create a figure with subplots for each channel
+            num_channels = observation_np.shape[2]
+            fig, axes = plt.subplots(1, num_channels, figsize=(15, 3))  # Adjust figsize as needed
+
+            # Plot each channel in a subplot
+            for i in range(num_channels):
+                axes[i].imshow(observation_np[:, :, i], cmap="gray")  # Assuming grayscale channels
+                axes[i].set_title(f"Channel {i}")
+                axes[i].axis("off")
+
+            # Save the figure as an image using OpenCV
+            image_path = "observation_image.png"
+            plt.savefig(image_path, bbox_inches="tight", pad_inches=0)
+            plt.close()
+
+            # Load the saved image using OpenCV and display it
+            saved_image = cv2.imread(image_path)
+            cv2.imshow("Saved Observation Image", saved_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            ##################################################################################
 
         pi_action = steering2action(pi_action_steering)
-        print("SB3_steer", pi_action_steering)
-        print("SB3", pi_action)
+
         pi_act_q_values = q_values[0][pi_action]
 
         if pi_act_q_values >= (1 - ALPHA) * opt_q_values:
