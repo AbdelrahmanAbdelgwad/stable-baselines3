@@ -106,6 +106,7 @@ class QNetworkCopilot(BasePolicy):
         return self.q_net(self.extract_features(obs, self.features_extractor))
 
     def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
+        print(observation.shape)
         q_values = self(observation)
         # if not self.copilot:
         #     print("Inside normal code")
