@@ -109,46 +109,39 @@ class QNetworkCopilot(BasePolicy):
         return self.q_net(self.extract_features(obs, self.features_extractor))
 
     def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
-        print(observation.shape)
+        # Saving 5 Channels of Observation
+        ##################################################################################
+        # print(observation.shape)
+        # # Convert the tensor to a numpy array
+        # observation_np = observation.squeeze(0).permute(1, 2, 0).cpu().numpy()
 
-        # Convert the tensor to a numpy array
-        observation_np = observation.squeeze(0).permute(1, 2, 0).cpu().numpy()
+        # # Create a figure with subplots for each channel
+        # num_channels = observation_np.shape[2]
+        # fig, axes = plt.subplots(1, num_channels, figsize=(15, 3))  # Adjust figsize as needed
 
-        # Create a figure with subplots for each channel
-        num_channels = observation_np.shape[2]
-        fig, axes = plt.subplots(1, num_channels, figsize=(15, 3))  # Adjust figsize as needed
+        # # Plot each channel in a subplot
+        # for i in range(num_channels):
+        #     axes[i].imshow(observation_np[:, :, i], cmap="gray")  # Assuming grayscale channels
+        #     axes[i].set_title(f"Channel {i}")
+        #     axes[i].axis("off")
 
-        # Plot each channel in a subplot
-        for i in range(num_channels):
-            axes[i].imshow(observation_np[:, :, i], cmap="gray")  # Assuming grayscale channels
-            axes[i].set_title(f"Channel {i}")
-            axes[i].axis("off")
+        # # Save the figure as an image using OpenCV
+        # image_path = "observation_image.png"
+        # plt.savefig(image_path, bbox_inches="tight", pad_inches=0)
+        # plt.close()
 
-        # Save the figure as an image using OpenCV
-        image_path = "observation_image.png"
-        plt.savefig(image_path, bbox_inches="tight", pad_inches=0)
-        plt.close()
-
-        # Load the saved image using OpenCV and display it
-        saved_image = cv2.imread(image_path)
-        cv2.imshow("Saved Observation Image", saved_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # # Load the saved image using OpenCV and display it
+        # saved_image = cv2.imread(image_path)
+        # cv2.imshow("Saved Observation Image", saved_image)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        ###################################################################################
 
         q_values = self(observation)
-        # if not self.copilot:
-        #     print("Inside normal code")
-        #     # Greedy action
-        #     action = q_values.argmax(dim=1).reshape(-1)
-        # else:
-        # print("Inside copilot code")
-        # print("Q_values", q_values, "\n")
         q_values = q_values.cpu().data.numpy()
         # q_values -= tf.reduce_min(q_values)
         q_values -= np.min(q_values)
-        # opt_action = q_values.argmax(dim=1).reshape(-1)
         opt_action = np.argmax(q_values).item()
-        # print("Q_values normalized", q_values, "\n")
         opt_q_values = q_values[0][opt_action]
 
         if DICT:
@@ -159,7 +152,6 @@ class QNetworkCopilot(BasePolicy):
         pi_action = steering2action(pi_action_steering)
         print("SB3_steer", pi_action_steering)
         print("SB3", pi_action)
-        # pi_act_q_values = q_values[0][pi_action]
         pi_act_q_values = q_values[0][pi_action]
 
         if pi_act_q_values >= (1 - ALPHA) * opt_q_values:
@@ -167,7 +159,6 @@ class QNetworkCopilot(BasePolicy):
         else:
             action = opt_action
 
-        # print(pi_action == action)
         return action
 
     def _get_constructor_parameters(self) -> Dict[str, Any]:
