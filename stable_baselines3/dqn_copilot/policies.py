@@ -119,12 +119,13 @@ class QNetworkCopilot(BasePolicy):
         if DICT:
             pi_action_steering = observation["human_action"][0].item()
         else:
-            pi_action_steering = get_last_element(observation)
+            # Convert the tensor to a numpy array
+            pi_action_steering = observation[0, 4, -1, -1]
+
         if -1 <= pi_action_steering <= 1:
-            print("pass")
+            print("pass", pi_action_steering)
         else:
-            print("SB3_steer", pi_action_steering)
-            print("SB3", pi_action)
+            print("fail", pi_action_steering)
 
             # Saving 5 Channels of Observation
             #################################################################################
