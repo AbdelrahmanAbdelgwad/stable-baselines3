@@ -112,7 +112,7 @@ class QNetworkCopilot(BasePolicy):
         print(observation.shape)
 
         # Convert the tensor to a numpy array
-        observation_np = observation.cpu().numpy()
+        observation_np = observation.squeeze(0).permute(1, 2, 0).cpu().numpy()
 
         # Create a figure with subplots for each channel
         num_channels = observation_np.shape[2]
