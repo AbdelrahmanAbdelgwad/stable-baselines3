@@ -17,6 +17,9 @@ from stable_baselines3.common.type_aliases import Schedule
 ALPHA = 0.6
 DICT = False
 
+import matplotlib.pyplot as plt
+import cv2
+
 
 def get_last_element(tensor):
     # Flatten the tensor to 1D
@@ -107,6 +110,31 @@ class QNetworkCopilot(BasePolicy):
 
     def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
         print(observation.shape)
+
+        # Convert the tensor to a numpy array
+        observation_np = observation.cpu().numpy()
+
+        # Create a figure with subplots for each channel
+        num_channels = observation_np.shape[2]
+        fig, axes = plt.subplots(1, num_channels, figsize=(15, 3))  # Adjust figsize as needed
+
+        # Plot each channel in a subplot
+        for i in range(num_channels):
+            axes[i].imshow(observation_np[:, :, i], cmap="gray")  # Assuming grayscale channels
+            axes[i].set_title(f"Channel {i}")
+            axes[i].axis("off")
+
+        # Save the figure as an image using OpenCV
+        image_path = "observation_image.png"
+        plt.savefig(image_path, bbox_inches="tight", pad_inches=0)
+        plt.close()
+
+        # Load the saved image using OpenCV and display it
+        saved_image = cv2.imread(image_path)
+        cv2.imshow("Saved Observation Image", saved_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
         q_values = self(observation)
         # if not self.copilot:
         #     print("Inside normal code")
