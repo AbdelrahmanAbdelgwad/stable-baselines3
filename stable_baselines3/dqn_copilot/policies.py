@@ -14,11 +14,18 @@ from stable_baselines3.common.torch_layers import (
 )
 from stable_baselines3.common.type_aliases import Schedule
 
-ALPHA = 0.6
 DICT = False
 
-import matplotlib.pyplot as plt
-import cv2
+
+def map_val(
+    input: float,
+    input_min: float,
+    input_max: float,
+    output_min: float,
+    output_max: float,
+) -> float:
+    output = (((input - input_min) / (input_max - input_min)) * (output_max - output_min)) + output_min
+    return output
 
 
 def get_last_element(tensor):
@@ -109,9 +116,13 @@ class QNetworkCopilot(BasePolicy):
         return self.q_net(self.extract_features(obs, self.features_extractor))
 
     def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
+        file_path = "/home/hydra/grad_project/haptic-shared-autonomy/src/haptic/alpha.txt"
+        with open(file_path, "r") as file:
+            file_content = file.read()
+            ALPHA = float(file_content)
+
         q_values = self(observation)
         q_values = q_values.cpu().data.numpy()
-        # q_values -= tf.reduce_min(q_values)
         q_values -= np.min(q_values)
         opt_action = np.argmax(q_values).item()
         opt_q_values = q_values[0][opt_action]
@@ -119,55 +130,8 @@ class QNetworkCopilot(BasePolicy):
         if DICT:
             pi_action_steering = observation["human_action"][0].item()
         else:
-            # Convert the tensor to a numpy array
-            pi_action_steering = observation[0, 4, -1, -1].item()
-            print("from inside SB3 prediction step, the pi_action_steering is", pi_action_steering)
-
-        # if -1 <= pi_action_steering <= 1:
-        #     print("pass", pi_action_steering)
-        # elif pi_action_steering == 255:
-        #     pi_action_steering = 1
-        # else:
-        #     print("fail", pi_action_steering)
-
-        #     channel = observation[0, 4, :, :]
-        #     channel = channel.cpu().numpy()
-        #     print(channel.shape)
-        #     all_values_equal = np.all(channel == channel[0, 0])
-        #     print(all_values_equal)
-
-        #     with open(f"last_channel_values.txt", "a") as file:
-        #         for i in range(96):
-        #             for j in range(96):
-        #                 file.write(f"{channel[i][j]}\n")
-
-        #     # Saving 5 Channels of Observation
-        #     #################################################################################
-        #     print(observation.shape)
-        #     # Convert the tensor to a numpy array
-        #     observation_np = observation.squeeze(0).permute(1, 2, 0).cpu().numpy()
-
-        #     # Create a figure with subplots for each channel
-        #     num_channels = observation_np.shape[2]
-        #     fig, axes = plt.subplots(1, num_channels, figsize=(15, 3))  # Adjust figsize as needed
-
-        #     # Plot each channel in a subplot
-        #     for i in range(num_channels):
-        #         axes[i].imshow(observation_np[:, :, i], cmap="gray")  # Assuming grayscale channels
-        #         axes[i].set_title(f"Channel {i}")
-        #         axes[i].axis("off")
-
-        #     # Save the figure as an image using OpenCV
-        #     image_path = "observation_image.png"
-        #     plt.savefig(image_path, bbox_inches="tight", pad_inches=0)
-        #     plt.close()
-
-        #     # Load the saved image using OpenCV and display it
-        #     saved_image = cv2.imread(image_path)
-        #     cv2.imshow("Saved Observation Image", saved_image)
-        #     cv2.waitKey(0)
-        #     cv2.destroyAllWindows()
-        #     ##################################################################################
+            pi_action_steering = get_last_element(observation)
+            pi_action_steering = round(map_val(pi_action_steering, 0, 255, -1, 1), 1)
 
         pi_action = steering2action(pi_action_steering)
 
@@ -178,6 +142,7 @@ class QNetworkCopilot(BasePolicy):
         else:
             action = opt_action
 
+        # print("SB3", action)
         return action
 
     def _get_constructor_parameters(self) -> Dict[str, Any]:
