@@ -116,7 +116,7 @@ class QNetworkCopilot(BasePolicy):
         return self.q_net(self.extract_features(obs, self.features_extractor))
 
     def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
-        file_path = "/home/hydra/grad_project/haptic-shared-autonomy/src/haptic/alpha.txt"
+        file_path = "/home/anas/shared_autonomy/haptic/src/haptic/alpha.txt"
         with open(file_path, "r") as file:
             file_content = file.read()
             ALPHA = float(file_content)
@@ -134,7 +134,7 @@ class QNetworkCopilot(BasePolicy):
             pi_action_steering = round(map_val(pi_action_steering, 0, 255, -1, 1), 1)
 
         pi_action = steering2action(pi_action_steering)
-
+        print("piactions",  pi_action)
         pi_act_q_values = q_values[0][pi_action]
 
         if pi_act_q_values >= (1 - ALPHA) * opt_q_values:
