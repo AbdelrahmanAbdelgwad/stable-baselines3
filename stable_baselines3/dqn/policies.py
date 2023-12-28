@@ -276,8 +276,8 @@ class DQNPolicy(BasePolicy):
         with th.no_grad():
             actions = self._predict(observation, deterministic=deterministic)
         # Convert to numpy, and reshape to the original action shape
-        # actions = actions.cpu().numpy().reshape((-1, *self.action_space.shape))
-        actions = np.array([actions]).reshape((-1, *self.action_space.shape))
+        actions = actions.cpu().numpy().reshape((-1, *self.action_space.shape))
+        # actions = np.array([actions]).reshape((-1, *self.action_space.shape))
 
         if isinstance(self.action_space, spaces.Box):
             if self.squash_output:

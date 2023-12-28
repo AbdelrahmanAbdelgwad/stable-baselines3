@@ -1,8 +1,10 @@
 from typing import Any, Dict, List, Optional, Type, Type, Union, Tuple
+import glob
 import numpy as np
 import torch as th
 from gymnasium import spaces
 from torch import nn
+
 
 from stable_baselines3.common.policies import BasePolicy
 from stable_baselines3.common.torch_layers import (
@@ -15,6 +17,7 @@ from stable_baselines3.common.torch_layers import (
 from stable_baselines3.common.type_aliases import Schedule
 
 DICT = False
+ALPHA_FILE_PATH = glob.glob("*src/haptic/alpha.txt")
 
 
 def map_val(
@@ -116,7 +119,7 @@ class QNetworkCopilot(BasePolicy):
         return self.q_net(self.extract_features(obs, self.features_extractor))
 
     def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
-        file_path = "/home/hydra/grad_project/haptic-shared-autonomy/src/haptic/alpha.txt"
+        file_path = ALPHA_FILE_PATH[0]
         with open(file_path, "r") as file:
             file_content = file.read()
             ALPHA = float(file_content)
