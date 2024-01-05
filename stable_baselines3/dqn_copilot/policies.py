@@ -16,7 +16,7 @@ from stable_baselines3.common.torch_layers import (
 )
 from stable_baselines3.common.type_aliases import Schedule
 
-DICT = False
+OBS_SPACE = "vector"  # "frames" or "vector" or "dict"
 ALPHA_FILE_PATH = glob.glob("*src/haptic/alpha.txt")
 
 
@@ -66,6 +66,10 @@ def steering2action(action):
         action = 10  # RIGHT_LEVEL_5
 
     return action
+
+
+def discretize_value(value):
+    return np.round(np.linspace(-1, 1, 11), 1)[np.abs(np.linspace(-1, 1, 11) - value).argmin()]
 
 
 class QNetworkCopilot(BasePolicy):
@@ -123,19 +127,21 @@ class QNetworkCopilot(BasePolicy):
         with open(file_path, "r") as file:
             file_content = file.read()
             ALPHA = float(file_content)
-
         q_values = self(observation)
         q_values = q_values.cpu().data.numpy()
         q_values -= np.min(q_values)
         opt_action = np.argmax(q_values).item()
         opt_q_values = q_values[0][opt_action]
 
-        if DICT:
+        if OBS_SPACE == "dict":
             pi_action_steering = observation["human_action"][0].item()
-        else:
+        elif OBS_SPACE == "frames":
             pi_action_steering = get_last_element(observation)
             pi_action_steering = round(map_val(pi_action_steering, 0, 255, -1, 1), 1)
+        elif OBS_SPACE == "vector":
+            pi_action_steering = get_last_element(observation)
 
+        pi_action_steering = discretize_value(pi_action_steering)
         pi_action = steering2action(pi_action_steering)
 
         pi_act_q_values = q_values[0][pi_action]
@@ -144,6 +150,8 @@ class QNetworkCopilot(BasePolicy):
             action = pi_action
         else:
             action = opt_action
+
+        print("SB3", action == pi_action)
 
         # print("SB3", action)
         return action
