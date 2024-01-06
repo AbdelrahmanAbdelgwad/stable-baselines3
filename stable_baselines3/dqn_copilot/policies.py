@@ -125,8 +125,9 @@ class QNetworkCopilot(BasePolicy):
     def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
         file_path = ALPHA_FILE_PATH[0]
         with open(file_path, "r") as file:
-            file_content = file.read()
-            ALPHA = float(file_content)
+            file_content = file.readlines()
+            ALPHA = float(file_content[0])
+            OBS_SPACE = str(file_content[1])
         q_values = self(observation)
         q_values = q_values.cpu().data.numpy()
         q_values -= np.min(q_values)
@@ -151,9 +152,6 @@ class QNetworkCopilot(BasePolicy):
         else:
             action = opt_action
 
-        print("SB3", action == pi_action)
-
-        # print("SB3", action)
         return action
 
     def _get_constructor_parameters(self) -> Dict[str, Any]:
