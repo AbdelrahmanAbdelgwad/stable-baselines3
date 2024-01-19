@@ -13,7 +13,6 @@ from stable_baselines3.common.torch_layers import (
     create_mlp,
 )
 from stable_baselines3.common.type_aliases import Schedule
-import tensorflow as tf
 
 ALPHA = 0.6
 
